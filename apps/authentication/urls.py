@@ -1,6 +1,6 @@
 # URLs for the authentication app.
 from django.urls import path
-from .views import SignUpView, CustomLoginForm, VerifyOTPView, logout_view
+from .views import SignUpView, CustomLoginView, VerifyOTPView, logout_view
 
 # The app_name variable helps Django distinguish between URL names
 # from different apps. For example, you can have a 'detail' view
