@@ -10,6 +10,9 @@ urlpatterns = [
     # For example, the signup view will be available at /auth/signup/
     path('auth/', include('apps.authentication.urls', namespace='authentication')),
     
+    # Include all URLs from the dashboard app under the 'dashboard/' prefix.
+    path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),
+    
     # Adding other app URLs here as we build them
     # path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),
     # path('billing/', include('apps.billing.urls', namespace='billing')),
