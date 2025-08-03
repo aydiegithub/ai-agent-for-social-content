@@ -1,5 +1,7 @@
+from utils.logger import logging
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from exceptions import AydieException
 
 # Because we are using CloudFlare D1 as our database, Django's built-in
 # migration system (`makemigrations`, `migrate`) will NOT be used to create
@@ -36,6 +38,7 @@ class User(AbstractUser):
     # We can use the 'date_joined' field AbstractUser for 'created_at'
     def __str__(self):
         """
-        String reperesents the user object.
+        String represents the user object.
         """
+        logging.info(f"User string representation accessed for: {self.username}")
         return self.username
