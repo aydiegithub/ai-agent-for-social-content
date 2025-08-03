@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from .models import User
 
-class CustomUserCreationFrom(forms.ModelForm):
+class CustomUserCreationForm(forms.ModelForm):
     """
     A form for creating new users. Includes all the required
     fields, plus password validation.
