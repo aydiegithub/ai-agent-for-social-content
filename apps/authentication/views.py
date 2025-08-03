@@ -16,7 +16,7 @@ def generate_otp():
     """Generate a 6-digit random OTP."""
     return str(random.randint(100000, 999999))
 
-class RegisterView(View):
+class SignUpView(View):
     """
     Handles user registration.
     """
