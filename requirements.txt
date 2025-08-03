@@ -1,0 +1,19 @@
+# Django Core
+django==4.2.13
+
+# AI & API Clients
+google-generativeai==0.5.*
+requests==2.31.*
+requests-oauthlib==1.3.*
+
+# Environment & Deployment
+python-dotenv==1.0.*
+gunicorn==22.0.0 # For WSGI server
+
+# Payment Gateway SDKs (add as needed)
+# razorpay==2.8.*
+# stripe==8.5.*
+
+# Testing
+pytest==8.1.*
+pytest-django==4.8.*
