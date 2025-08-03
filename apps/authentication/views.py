@@ -49,6 +49,7 @@ class RegisterView(View):
             # Integrate with a real email service
             # send_otp_email(user.email, otp)
             print(f"OTP for {user.email} is: {otp}") # Remove after testing
+            request.session['unverified_user_id'] = user.id
             
             messages.success(request, 'Registration successful! Please check your email for an OTP.')
             return redirect('verify_otp') # Edit this later
@@ -88,7 +89,7 @@ class VerifyOTPView(View):
         
         form = self.form_class(request.POST)
         if form.is_valid():
-            if user.email_otp = form.cleaned_data['otp']:
+            if user.email_otp == form.cleaned_data['otp']:
                 user.is_active = True
                 user.is_verified = True
                 user.email_otp = None # Clear OTP after successful verification
