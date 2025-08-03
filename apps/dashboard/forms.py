@@ -1,5 +1,6 @@
 from django import forms
 
+
 class ContentGenerationForm(forms.Form):
     """
     A form for user to input the parameters for AI content generation
