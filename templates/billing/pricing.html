@@ -1,0 +1,61 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Buy Credits - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+            Choose Your Plan
+        </h1>
+        <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+            Top up your credits and continue creating amazing content.
+        </p>
+        <div class="mt-6">
+            <a href="{% url 'dashboard:dashboard' %}" class="text-indigo-600 hover:text-indigo-500 font-medium">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Pricing Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {% for plan in plans %}
+            <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">{{ plan.name }}</h3>
+                
+                <div class="mt-4">
+                    <span class="text-4xl font-bold text-gray-900">
+                        {% if plan.currency == 'INR' %}₹{% else %}${% endif %}{{ plan.price|floatformat:2 }}
+                    </span>
+                    <span class="text-base font-medium text-gray-500">/ one-time</span>
+                </div>
+
+                <p class="mt-4 text-2xl font-bold text-indigo-600">
+                    {{ plan.credits }} Credits
+                </p>
+                
+                <p class="mt-2 text-sm text-gray-500">
+                    Perfect for getting started and generating a batch of content.
+                </p>
+
+                <div class="mt-auto pt-6">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                            Buy Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-12 text-center text-sm text-gray-500">
+        <p>Payments are processed securely by our partners. We do not store your payment information.</p>
+        <p>Supported gateways include UPI, PayPal, and Payoneer.</p>
+    </div>
+</div>
+{% endblock %}
