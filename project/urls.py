@@ -15,7 +15,9 @@ urlpatterns = [
     
     # Adding other app URLs here as we build them
     # path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),
-    # path('billing/', include('apps.billing.urls', namespace='billing')),
+    
+    # Include all the urls of billing
+    path('billing/', include('apps.billing.urls', namespace='billing')),
     # path('social/', include('apps.social.urls', namespace='social')),
     
     # For the root URL ('/'), redirect to the login page.
