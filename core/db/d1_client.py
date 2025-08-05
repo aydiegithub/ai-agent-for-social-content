@@ -8,50 +8,57 @@ from typing import List, Dict, Any, Optional
 # be available globally. We'll simulate it for local testing.
 class SimulatedEnv:
     def __init__(self):
+        # In a real CF Worker, this would be bound in wrangler.toml
+        # and provided by the environment.
         self.DB = D1Database()
-        
+
 class D1Database:
     def prepare(self, query: str):
         return D1PreparedStatement(query)
-    
+
 class D1PreparedStatement:
     def __init__(self, query: str):
         self._query = query
         self._bindings = []
-        
+
     def bind(self, *args):
-        self._bindings = args
+        # D1 bindings are 1-indexed, so we map them.
+        self._bindings = list(args)
         return self
-    
+
     def run(self):
-        # This is where the actual local execution happens
+        # This is where the actual local execution happens via wrangler
         db_name = os.getenv('D1_DATABASE_NAME', 'ai-content-generator-db')
         command = [
             'wrangler', 'd1', 'execute', db_name,
             '--local',
             '--json',
-            '--command', self._query
+            '--command', f'"{self._query}"' # Wrap query in quotes
         ]
         
         # Add bindings to the command
         for binding in self._bindings:
-            command.append(f'--param="{binding}"')
-            
+            # Properly quote string bindings for the shell command
+            param = f'"{binding}"' if isinstance(binding, str) else str(binding)
+            command.append(f'--param={param}')
+
         try:
-            result_json = subprocess.check_output(' '.join(command), shell=True)
+            # Use shell=True because wrangler commands can be complex
+            result_json = subprocess.check_output(' '.join(command), shell=True, text=True, stderr=subprocess.PIPE)
             return json.loads(result_json)[0] # Wrangler wraps result in a list
         except subprocess.CalledProcessError as e:
             print(f"Error executing D1 command: {e}")
+            print(f"Stderr: {e.stderr}")
             print(f"Command run: {' '.join(command)}")
             raise
         except (json.JSONDecodeError, IndexError) as e:
             print(f"Error parsing D1 response: {e}")
             print(f"Response JSON: {result_json}")
             raise
-        
+
     def all(self):
         return self.run()
-    
+
     def first(self, col: Optional[str] = None):
         response = self.run()
         results = response.get('results', [])
@@ -60,7 +67,6 @@ class D1PreparedStatement:
         if col:
             return results[0].get(col)
         return results[0]
-    
 
 # --- D1 Client ---
 class D1Client:
@@ -76,34 +82,23 @@ class D1Client:
         self.env = globals().get('env', SimulatedEnv())
         self.db = self.env.DB
         print("D1Client initialized.")
-        
+
     def _execute(self, query: str, params: Optional[List[Any]] = None) -> Dict[str, Any]:
-        """
-        Prepares and executes a query, returning the full D1 response.
-        """
         params = params or []
         stmt = self.db.prepare(query).bind(*params)
         return stmt.run()
-    
+
     def fetch_one(self, query: str, params: Optional[List[Any]] = None) -> Optional[Dict[str, Any]]:
-        """
-        Executes a query and returns the first result row as a dictionary, or None.
-        """
         params = params or []
         stmt = self.db.prepare(query).bind(*params)
         return stmt.first()
-    
-    
+
     def fetch_all(self, query: str, params: Optional[List[Any]] = None) -> List[Dict[str, Any]]:
-        """
-        Executes a query and returns all result rows as a list of dictionaries.
-        """  
-        response = self._execute(query, params)      
-        return response.get('result', [])
-    
+        response = self._execute(query, params)
+        return response.get('results', [])
+
     # --- High-Level Repository Methods ---
-    # These methods provide a clean, ORM-like interface for our views.add()
-    
+
     def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
         query = "SELECT * FROM users WHERE id = ?1;"
         return self.fetch_one(query, [user_id])
@@ -111,19 +106,34 @@ class D1Client:
     def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         query = "SELECT * FROM users WHERE email = ?1;"
         return self.fetch_one(query, [email])
-    
+
     def create_user(self, username, email, password_hash, otp) -> Dict[str, Any]:
-        query = """
-                INSERT INTO users (username, email, password, email_otp, is_active)
-                VALUES (?1, ?2, ?3, ?4, 0)
-                RETURNING *;
-        """
+        query = "INSERT INTO users (username, email, password, email_otp, is_active) VALUES (?1, ?2, ?3, ?4, 0) RETURNING *;"
         return self.fetch_one(query, [username, email, password_hash, otp])
-    
+
     def activate_user(self, user_id: int):
         query = "UPDATE users SET is_active = 1, is_verified = 1, email_otp = NULL WHERE id = ?1;"
         return self._execute(query, [user_id])
-    
+        
+    def get_or_create_user_credits(self, user_id: int) -> Dict[str, Any]:
+        query_get = "SELECT * FROM credits WHERE user_id = ?1;"
+        credits = self.fetch_one(query_get, [user_id])
+        if credits:
+            return credits
+        query_create = "INSERT INTO credits (user_id, balance) VALUES (?1, 10) RETURNING *;"
+        return self.fetch_one(query_create, [user_id])
 
-# A single instance to be used throughout the application
+    def get_content_history(self, user_id: int) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM content_history WHERE user_id = ?1 ORDER BY created_at DESC;"
+        return self.fetch_all(query, [user_id])
+
+    def create_content_history(self, user_id: int, title: str, input_params: Dict, generated_text: str, generated_image_url: Optional[str]) -> Dict[str, Any]:
+        query = "INSERT INTO content_history (user_id, title, input_params, generated_text, generated_image_url) VALUES (?1, ?2, ?3, ?4, ?5) RETURNING *;"
+        params_json = json.dumps(input_params)
+        return self.fetch_one(query, [user_id, title, params_json, generated_text, generated_image_url])
+
+    def update_user_credits(self, user_id: int, new_balance: int):
+        query = "UPDATE credits SET balance = ?1 WHERE user_id = ?2;"
+        return self._execute(query, [new_balance, user_id])
+
 d1_client = D1Client()
