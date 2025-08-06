@@ -1,22 +1,39 @@
-name = "aygentx-content-automation"
+# This is the name of your worker/application on the Cloudflare dashboard.
+name = "ai-content-generator"
+
+# This specifies the main entry point for your application.
 main = "run_worker.py"
-compatibility_date = "2024-03-01"
 
-# Bind a D1 database. This is your production D1.
-# [[d1_databases]]
-binding = "DB" # Available in your Worker on env.DB
+# This ensures our worker uses a modern, stable version of the Cloudflare runtime.
+compatibility_date = "2024-05-01"
+
+# This flag is required to enable the Python environment.
+compatibility_flags = ["python_workers"]
+
+# Your Cloudflare account ID.
+account_id = "884d322e363a0121b15dc0af65d3aada"
+
+# This tells Wrangler where to find your Python dependencies.
+[python]
+requirements = "requirements.txt"
+
+# -----------------------------------------------------------------------------
+# PRODUCTION DATABASE BINDING
+# -----------------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
 database_name = "aygentx-automation"
-database_id = "516efb09-8dc7-4db8-a939-c75276f5ca47"
+database_id = "6c4fc997-41bc-45eb-b96b-eb5355ca1050"
 
-# Bind an R2 bucket for image storage.
-# [[r2_buckets]]
-binding = "ASSETS" # Available in your Worker on env.ASSETS
-bucket_name = "ai-content-assets"
-
-# Add secrets for production here via `wrangler secret put`
-# e.g., wrangler secret put GEMINI_API_KEY
-
+# -----------------------------------------------------------------------------
+# LOCAL DEVELOPMENT CONFIGURATION
+# -----------------------------------------------------------------------------
+[dev]
 d1_database_binding = "DB"
 persist_to = ".wrangler/state"
 
+# -----------------------------------------------------------------------------
+# PRODUCTION SECRETS (ENVIRONMENT VARIABLES)
+# -----------------------------------------------------------------------------
+[vars]
 DEBUG = "False"
