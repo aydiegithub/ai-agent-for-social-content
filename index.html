@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AygentX - PostPilot AI </title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Main Application Container -->
+    <div id="app-container">
+
+        <!-- Loading Screen -->
+        <section id="loading-screen" class="min-h-screen flex items-center justify-center">
+            <p class="text-lg font-medium">Loading Application...</p>
+        </section>
+
+        <!-- Login Screen -->
+        <section id="login-screen" class="hidden-section min-h-screen flex items-center justify-center px-4 py-8">
+            <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-800">Welcome Back!</h1>
+                    <p class="text-gray-500 mt-2">Log in to continue your work.</p>
+                </div>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="login-email" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="login-password" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <p id="login-error" class="text-sm text-red-600 hidden"></p>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition">Log In</button>
+                    </div>
+                </form>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-600">Don't have an account? <a href="#" id="show-signup" class="font-medium text-indigo-600 hover:text-indigo-500">Sign Up</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signup Screen (UPDATED) -->
+        <section id="signup-screen" class="hidden-section min-h-screen flex items-center justify-center px-4 py-12">
+            <div class="w-full max-w-lg bg-white rounded-lg shadow-md p-8">
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-800">Create Your Account</h1>
+                    <p class="text-gray-500 mt-2">Join to start generating content.</p>
+                </div>
+                <form id="signup-form" class="space-y-4">
+                    <!-- Personal Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="signup-firstname" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                            <input type="text" id="signup-firstname" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label for="signup-lastname" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                            <input type="text" id="signup-lastname" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <!-- Auth Info -->
+                    <div>
+                        <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="signup-email" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="signup-password" required minlength="6" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <!-- Demographic Info -->
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="signup-dob" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                            <input type="date" id="signup-dob" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label for="signup-gender" class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                            <select id="signup-gender" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="">Select...</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Professional Info -->
+                    <div>
+                        <label for="signup-profession" class="block text-sm font-medium text-gray-700 mb-1">Profession</label>
+                        <input type="text" id="signup-profession" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                     <div>
+                        <label for="signup-heard-about" class="block text-sm font-medium text-gray-700 mb-1">How did you hear about us?</label>
+                        <input type="text" id="signup-heard-about" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <!-- Optional Info -->
+                    <div>
+                        <label for="signup-referral" class="block text-sm font-medium text-gray-700 mb-1">Referral Code (Optional)</label>
+                        <input type="text" id="signup-referral" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+
+                    <p id="signup-error" class="text-sm text-red-600 hidden"></p>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition">Create Account</button>
+                    </div>
+                </form>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-600">Already have an account? <a href="#" id="show-login" class="font-medium text-indigo-600 hover:text-indigo-500">Log In</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Screen -->
+        <section id="dashboard-screen" class="hidden-section w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard content remains the same -->
+             <header class="flex flex-wrap items-center justify-between mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+                    <p id="welcome-message" class="text-gray-500 mt-1">Welcome back!</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="bg-indigo-100 text-indigo-700 font-semibold px-4 py-2 rounded-lg">
+                        Credits: <span id="credits-balance">...</span>
+                    </div>
+                    <button id="logout-button" class="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-md hover:bg-gray-50 transition">Logout</button>
+                </div>
+            </header>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Generate New Content</h2>
+                        <form id="content-form" class="space-y-6">
+                            <div>
+                                <label for="title" class="block text-sm font-medium text-gray-700">Content Title</label>
+                                <input type="text" id="title" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="niche" class="block text-sm font-medium text-gray-700">Niche or Industry</label>
+                                <input type="text" id="niche" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="context" class="block text-sm font-medium text-gray-700">Context (Optional)</label>
+                                <textarea id="context" rows="4" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="generate-image" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <label for="generate-image" class="ml-2 block text-sm text-gray-900">Generate a matching image (costs 3 credits)</label>
+                            </div>
+                            <p id="generator-error" class="text-sm text-red-600 hidden"></p>
+                            <div>
+                                <button type="submit" id="generate-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                                    Generate Content
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Content History</h2>
+                        <div id="history-container" class="space-y-4">
+                            <p class="text-gray-500">No content generated yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc,
+            onSnapshot,
+            collection,
+            query,
+            orderBy,
+            addDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- 1. PASTE YOUR FIREBASE CONFIGURATION HERE ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // --- 2. INITIALIZE FIREBASE AND GET SERVICES ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- 3. DOM ELEMENT REFERENCES ---
+        const loadingScreen = document.getElementById('loading-screen');
+        const loginScreen = document.getElementById('login-screen');
+        const signupScreen = document.getElementById('signup-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const contentForm = document.getElementById('content-form');
+        
+        const showSignupBtn = document.getElementById('show-signup');
+        const showLoginBtn = document.getElementById('show-login');
+        const logoutButton = document.getElementById('logout-button');
+
+        const creditsBalanceEl = document.getElementById('credits-balance');
+        const historyContainer = document.getElementById('history-container');
+        const welcomeMessageEl = document.getElementById('welcome-message');
+
+        // --- 4. UI NAVIGATION LOGIC ---
+        const showScreen = (screenId) => {
+            ['loading-screen', 'login-screen', 'signup-screen', 'dashboard-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden-section');
+            });
+            document.getElementById(screenId).classList.remove('hidden-section');
+        };
+
+        showSignupBtn.addEventListener('click', (e) => { e.preventDefault(); showScreen('signup-screen'); });
+        showLoginBtn.addEventListener('click', (e) => { e.preventDefault(); showScreen('login-screen'); });
+
+        // --- 5. AUTHENTICATION LOGIC ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                console.log("User is logged in:", user.uid);
+                // We can fetch the user's profile to get their name
+                const userDocRef = doc(db, "users", user.uid);
+                onSnapshot(userDocRef, (doc) => {
+                    if (doc.exists()) {
+                        welcomeMessageEl.textContent = `Welcome back, ${doc.data().firstName}!`;
+                    } else {
+                        welcomeMessageEl.textContent = `Welcome back, ${user.email}!`;
+                    }
+                });
+                setupRealtimeListeners(user.uid);
+                showScreen('dashboard-screen');
+            } else {
+                console.log("User is logged out.");
+                showScreen('login-screen');
+            }
+        });
+
+        // UPDATED SIGNUP FUNCTION
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('signup-error');
+            errorEl.classList.add('hidden');
+
+            // Get all form values
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const firstName = document.getElementById('signup-firstname').value;
+            const lastName = document.getElementById('signup-lastname').value;
+            const dob = document.getElementById('signup-dob').value;
+            const gender = document.getElementById('signup-gender').value;
+            const profession = document.getElementById('signup-profession').value;
+            const heardAbout = document.getElementById('signup-heard-about').value;
+            const referralCode = document.getElementById('signup-referral').value;
+
+            try {
+                // Step 1: Create the user in Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Step 2: Create the user profile document in Firestore
+                const userProfile = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    dateOfBirth: dob,
+                    gender: gender,
+                    profession: profession,
+                    heardAbout: heardAbout,
+                    referralCode: referralCode || null,
+                    createdAt: serverTimestamp(), // For analytics
+                    lastLoginAt: serverTimestamp(), // For analytics
+                    accountStatus: 'active'
+                };
+                await setDoc(doc(db, "users", user.uid), userProfile);
+
+                // Step 3: Create the initial credits document for the new user
+                await setDoc(doc(db, "credits", user.uid), { balance: 10 });
+
+                console.log("New user and profile created successfully.");
+                
+            } catch (error) {
+                console.error("Signup Error:", error.message);
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('hidden');
+            }
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // Update last login timestamp for analytics
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    lastLoginAt: serverTimestamp()
+                }, { merge: true }); // Merge to avoid overwriting other fields
+                errorEl.classList.add('hidden');
+            } catch (error) {
+                console.error("Login Error:", error.message);
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('hidden');
+            }
+        });
+
+        logoutButton.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // --- 6. DATABASE AND REAL-TIME LOGIC (Unchanged) ---
+        let creditsUnsubscribe = null;
+        let historyUnsubscribe = null;
+
+        function setupRealtimeListeners(userId) {
+            if (creditsUnsubscribe) creditsUnsubscribe();
+            if (historyUnsubscribe) historyUnsubscribe();
+
+            const creditsDocRef = doc(db, "credits", userId);
+            creditsUnsubscribe = onSnapshot(creditsDocRef, (doc) => {
+                creditsBalanceEl.textContent = doc.exists() ? doc.data().balance : 'N/A';
+            });
+
+            const historyCollectionRef = collection(db, "users", userId, "history");
+            const q = query(historyCollectionRef, orderBy("createdAt", "desc"));
+            historyUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                if (querySnapshot.empty) {
+                    historyContainer.innerHTML = '<p class="text-gray-500">No content generated yet.</p>';
+                    return;
+                }
+                let html = '';
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    const date = item.createdAt.toDate().toLocaleDateString();
+                    html += `
+                        <div class="border-b border-gray-200 pb-3">
+                            <h3 class="font-semibold text-gray-800">${item.title}</h3>
+                            <p class="text-sm text-gray-500">Generated on: ${date}</p>
+                            <a href="#" class="text-sm text-indigo-600 hover:underline mt-2 inline-block">View & Edit</a>
+                        </div>
+                    `;
+                });
+                historyContainer.innerHTML = html;
+            });
+        }
+
+        // --- 7. CONTENT GENERATION LOGIC (Unchanged) ---
+        contentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be logged in to generate content.");
+                return;
+            }
+            
+            const title = document.getElementById('title').value;
+            const niche = document.getElementById('niche').value;
+            const context = document.getElementById('context').value;
+            const generateImage = document.getElementById('generate-image').checked;
+
+            const historyCollectionRef = collection(db, "users", user.uid, "history");
+            await addDoc(historyCollectionRef, {
+                title: title,
+                niche: niche,
+                context: context,
+                generatedText: "This is a placeholder for the AI generated text.",
+                imageUrl: generateImage ? "https://placehold.co/1024x1024/e0e7ff/4f46e5?text=AI+Image" : null,
+                createdAt: serverTimestamp()
+            });
+
+            alert("Content generation simulated and saved to your history!");
+            contentForm.reset();
+        });
+
+    </script>
+</body>
+</html>
