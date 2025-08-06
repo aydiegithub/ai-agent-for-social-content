@@ -3,15 +3,17 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
+# Load environment variables from .env file for local development
 load_dotenv()
 
 # --- Core Settings ---
 BASE_DIR = Path(__file__).resolve().parent.parent
+# SECRET_KEY is loaded from an environment variable for security
 SECRET_KEY = os.getenv('SECRET_KEY')
-# DEBUG should be False in production!
+# DEBUG is False in production for security and performance
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-# GCP Cloud Run provides the PORT environment variable.
-ALLOWED_HOSTS = ['*'] # Cloud Run handles host security.
+# ALLOWED_HOSTS is set to '*' because Cloud Run handles host security via its own gateway.
+ALLOWED_HOSTS = ['*']
 
 
 # --- Application Definition ---
@@ -21,8 +23,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # 'whitenoise.runserver_nostatic', # Use this for local static file testing if needed
     'django.contrib.staticfiles',
-    'storages',  # For django-storages
+    'storages',  # For django-storages (Cloudflare R2)
     # Our apps
     'apps.authentication',
     'apps.dashboard',
@@ -31,11 +34,12 @@ INSTALLED_APPS = [
     'core',
 ]
 
+# Use our custom User model for authentication
 AUTH_USER_MODEL = 'authentication.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # For serving static files
+    'whitenoise.middleware.WhiteNoiseMiddleware', # For serving static files efficiently
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,10 +55,11 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # --- Database Configuration (for Google Cloud SQL) ---
 # GCP will provide the DATABASE_URL environment variable.
 # dj_database_url will parse it into the correct format for Django.
+# For local development, it will fall back to a simple sqlite file.
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
+        conn_max_age=600 # Keeps connections alive for performance
     )
 }
 
@@ -93,7 +98,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- Cloudflare R2 for Media Files (Generated Images) ---
 # These settings tell django-storages how to connect to your R2 bucket.
-# All these values should be set as environment variables in GCP.
+# All these values will be set as environment variables in GCP.
 AWS_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('R2_BUCKET_NAME')
@@ -102,5 +107,5 @@ AWS_S3_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN') # e.g., 'media.yourdomain.c
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 AWS_DEFAULT_ACL = None
 
-# This tells Django to use our R2 bucket for any file uploads.
+# This tells Django to use our R2 bucket for any file uploads (e.g., generated images).
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
