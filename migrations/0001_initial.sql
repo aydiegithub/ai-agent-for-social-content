@@ -1,5 +1,3 @@
--- AI Content Generator Schema v1
-
 -- Drop tables if they exist to make this script rerunnable
 DROP TABLE IF EXISTS social_connections;
 DROP TABLE IF EXISTS transactions;
@@ -7,17 +5,29 @@ DROP TABLE IF EXISTS content_history;
 DROP TABLE IF EXISTS credits;
 DROP TABLE IF EXISTS users;
 
--- User table
+-- User table with new profile columns
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    phone_number TEXT UNIQUE,
-    email_otp TEXT,
-    sms_otp TEXT,
-    is_verified INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    email TEXT UNIQUE NOT NULL,
+    first_name TEXT,
+    last_name TEXT,
+    is_staff INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    is_superuser INTEGER NOT NULL DEFAULT 0,
+    date_joined TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login TEXT,
+    
+    -- New Profile Fields
+    date_of_birth TEXT, -- Stored as TEXT in 'YYYY-MM-DD' format
+    gender TEXT,
+    profession TEXT,
+    how_did_you_hear_about_us TEXT,
+    referral_code TEXT,
+    country TEXT,
+    interests TEXT,
+    is_verified INTEGER NOT NULL DEFAULT 0
 );
 
 -- Credits table

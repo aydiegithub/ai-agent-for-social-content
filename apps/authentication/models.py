@@ -1,44 +1,30 @@
-from utils.logger import logging
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from exceptions import AydieException
-
-# Because we are using CloudFlare D1 as our database, Django's built-in
-# migration system (`makemigrations`, `migrate`) will NOT be used to create
-# or alter the database schema. The source of truth for the database schema
-# is the raw SQL file in `migrations/0001_initial.sql`.
-#
-# These Django models serve as a Python-native representation of our D1 tables.
-# They are crucial for:
-# 1. Data Validation: Using Django Forms and Serializers.
-# 2. Business Logic: Interacting with user data in a structured way in our views.
-# 3. Code Clarity: Providing a clear, object-oriented definition of our data.
 
 class User(AbstractUser):
     """
-    Custom User model that extends Django's built-in AbstractUser
-    This model mirrors the 'users' table defined in our D1 SQL migration.
+    Custom User model with additional profile information.
     """
-    # AbstractUser already provides
-    # username, first_name, last_name, email, passwords,
-    # is_staff, is_active, is_superuser, last_login, date_joined
-    
-    # we will overide the email field to make it unique and always required
+    GENDER_CHOICES = [
+        ('MALE', 'Male'),
+        ('FEMALE', 'Female'),
+        ('OTHER', 'Other'),
+    ]
+
+    # We override the email field to ensure it's always unique.
     email = models.EmailField(unique=True, blank=False, null=False)
-    
-    # Custom fields to match our D1 schema
-    phone_number = models.CharField(max_length=20, unique=True, blank=False, null=True)
-    email_otp = models.CharField(max_length=6, blank=True, null=True)
-    sms_otp = models.CharField(max_length=6, blank=True, null=True)
-    
-    # We use a boolean field here which will map to the INTEGER type in D1 (0 or 1)
+
+    # New profile fields you requested
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
+    profession = models.CharField(max_length=100, null=True, blank=True)
+    how_did_you_hear_about_us = models.CharField(max_length=255, null=True, blank=True)
+    referral_code = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    interests = models.TextField(null=True, blank=True, help_text="Comma-separated interests.")
+
+    # Fields from the old D1 schema that are still relevant
     is_verified = models.BooleanField(default=False)
     
-    
-    # We can use the 'date_joined' field AbstractUser for 'created_at'
     def __str__(self):
-        """
-        String represents the user object.
-        """
-        logging.info(f"User string representation accessed for: {self.username}")
         return self.username
