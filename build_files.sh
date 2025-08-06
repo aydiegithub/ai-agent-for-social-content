@@ -5,14 +5,16 @@ set -e
 
 echo "Building the project..."
 
-# Use python3.9 -m pip to ensure we use the correct installer
-# for the runtime specified in vercel.json
-python3.9 -m pip install -r requirements.txt
+# Install Python dependencies
+pip install -r requirements.txt
 
 # Run Django database migrations
-python3.9 manage.py migrate
+# This applies any changes from your models to the live database schema.
+python manage.py migrate
 
 # Collect static files
-python3.9 manage.py collectstatic --noinput --clear
+# This gathers all static files (CSS, JS, images) into a single directory
+# that Vercel can serve efficiently.
+python manage.py collectstatic --noinput --clear
 
 echo "Build finished."
