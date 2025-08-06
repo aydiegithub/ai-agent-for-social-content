@@ -1,17 +1,22 @@
-name = "ai-content-generator"
-main = "project/wsgi.py" # Update with the correct entry point script
+name = "aygentx-content-automation"
+main = "run_worker.py"
 compatibility_date = "2024-03-01"
 
 # Bind a D1 database. This is your production D1.
 # [[d1_databases]]
-# binding = "DB" # Available in your Worker on env.DB
-# database_name = "ai-content-prod"
-# database_id = "<your-production-d1-database-id>"
+binding = "DB" # Available in your Worker on env.DB
+database_name = "aygentx-automation"
+database_id = "516efb09-8dc7-4db8-a939-c75276f5ca47"
 
 # Bind an R2 bucket for image storage.
 # [[r2_buckets]]
-# binding = "ASSETS" # Available in your Worker on env.ASSETS
-# bucket_name = "ai-content-assets"
+binding = "ASSETS" # Available in your Worker on env.ASSETS
+bucket_name = "ai-content-assets"
 
 # Add secrets for production here via `wrangler secret put`
 # e.g., wrangler secret put GEMINI_API_KEY
+
+d1_database_binding = "DB"
+persist_to = ".wrangler/state"
+
+DEBUG = "False"
