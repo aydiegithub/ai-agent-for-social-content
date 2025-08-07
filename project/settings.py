@@ -65,7 +65,6 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # dj_database_url parses it into the correct format for Django.
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600, # Keeps connections alive for performance
         ssl_require=os.getenv('DATABASE_SSL_REQUIRE', 'False') == 'True'
     )
