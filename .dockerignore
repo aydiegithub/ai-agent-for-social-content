@@ -1,0 +1,25 @@
+# Ignore Git history
+.git
+.gitignore
+
+# Ignore Python virtual environment
+.venv
+venv/
+env/
+
+# Ignore Python cache files
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore local development database
+db.sqlite3
+db.sqlite3-journal
+
+# Ignore local environment variables
+.env
+.env.example
+
+# Ignore OS-specific files
+.DS_Store
