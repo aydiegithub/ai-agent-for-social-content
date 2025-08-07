@@ -1,18 +1,16 @@
 from django.db import models
 from django.conf import settings
+from .encryption import encrypt_token, decrypt_token
 
-# This model mirrors the `social_connections` table in our D1 SQL schema.
-# It is not used for database migrations but for data validation, serialization,
-# and providing an object-oriented interface to our data within Django.
-
-class SocialConnnection(models.Model):
+class SocialConnection(models.Model):
     """
     Stores the OAuth tokens and connection details for a user's social media accounts.
+    Tokens are encrypted at rest in the database.
     """  
     
     PLATFORM_CHOICES = [
-        ('X.com', 'X.com'),
-        ('LinkedIn', 'LinkedIn')
+        ('x_com', 'X.com'),
+        ('linkedin', 'LinkedIn')
     ]
     
     user = models.ForeignKey(
@@ -27,15 +25,14 @@ class SocialConnnection(models.Model):
         help_text="The social media platform."
     )
     
-    # In a production environment, these tokens MUST be encrypted before
-    # being saved to the database. We use a library 'cryptography'
-    # and custom model field methods to handle this automatically.
-    # For now, we store them as text.
-    access_token = models.TextField(
-        help_text="The encrypted OAuth accedd token."
+    # These fields will store the ENCRYPTED tokens.
+    _access_token = models.TextField(
+        db_column='access_token',
+        help_text="The encrypted OAuth access token."
     )
     
-    refresh_token = models.TextField(
+    _refresh_token = models.TextField(
+        db_column='refresh_token',
         blank=True,
         null=True,
         help_text="The encrypted OAuth refresh token, if provided."
@@ -51,16 +48,34 @@ class SocialConnnection(models.Model):
         max_length=255,
         help_text="The user's unique ID or handle on the social platform."
     )
+
+    # We use properties to handle encryption/decryption on the fly.
+    # The application code will interact with `access_token` and `refresh_token`
+    # without needing to know about the encryption.
+    
+    @property
+    def access_token(self):
+        return decrypt_token(self._access_token)
+
+    @access_token.setter
+    def access_token(self, value):
+        self._access_token = encrypt_token(value)
+
+    @property
+    def refresh_token(self):
+        return decrypt_token(self._refresh_token)
+
+    @refresh_token.setter
+    def refresh_token(self, value):
+        self._refresh_token = encrypt_token(value)
     
     class Meta:
-        # This creates a composite primary key, ensuring that a user can only
-        # have one entry per platform.
+        # This ensures that a user can only have one connection per platform.
         unique_together = ('user', 'platform')
-        verbose_name_plural = "Socail Connections"
+        verbose_name_plural = "Social Connections"
         
     def __str__(self):
         """
         String representation of a social connection.
         """
-        return f"{self.user.username}'s {self.get_platform_display()} Connection"     
-    
+        return f"{self.user.username}'s {self.get_platform_display()} Connection"
