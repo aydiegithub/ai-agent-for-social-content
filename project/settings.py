@@ -128,3 +128,6 @@ if not DEBUG:
     # You may need to configure SECURE_PROXY_SSL_HEADER if you're behind a proxy
     # that terminates SSL, which Cloud Run does.
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+LOGIN_URL = 'authentication:login'
+LOGIN_REDIRECT_URL = 'dashboard:dashboard'

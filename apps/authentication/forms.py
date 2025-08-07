@@ -3,9 +3,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from .models import User
 
 class CustomUserCreationForm(forms.ModelForm):
-    """
-    An expanded form for creating new users with detailed profile information.
-    """
+    # ... (password and other field definitions remain the same) ...
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput)
     date_of_birth = forms.DateField(
@@ -21,6 +19,20 @@ class CustomUserCreationForm(forms.ModelForm):
             'how_did_you_hear_about_us', 'referral_code', 'country', 'interests'
         )
 
+    # --- ADD THIS __init__ METHOD ---
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Define the common Tailwind CSS classes
+        tailwind_classes = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+        
+        # Add the classes to all fields except for the date picker
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.DateInput):
+                field.widget.attrs.update({'class': tailwind_classes})
+            # Add placeholders based on field name
+            field.widget.attrs.update({'placeholder': field.label})
+
+    # ... (clean_confirm_password and save methods remain the same) ...
     def clean_confirm_password(self):
         password = self.cleaned_data.get('password')
         confirm_password = self.cleaned_data.get('confirm_password')
@@ -35,10 +47,9 @@ class CustomUserCreationForm(forms.ModelForm):
             user.save()
         return user
 
-# --- ADD THE MISSING FORMS BELOW ---
 
 class CustomLoginForm(AuthenticationForm):
-    """A standard login form with Tailwind CSS classes."""
+    # ... (no changes needed here) ...
     username = forms.CharField(widget=forms.TextInput(attrs={
         'class': 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500',
         'placeholder': 'Username'
@@ -49,7 +60,7 @@ class CustomLoginForm(AuthenticationForm):
     }))
 
 class OTPVerificationForm(forms.Form):
-    """A form for the 6-digit OTP code."""
+    # ... (no changes needed here) ...
     otp = forms.CharField(
         max_length=6,
         min_length=6,
