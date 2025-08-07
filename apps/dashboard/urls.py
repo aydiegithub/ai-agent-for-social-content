@@ -1,4 +1,4 @@
-from django import path
+from django.urls import path # Corrected import
 from .views import DashboardView
 
 # The app_name variable helps Django distinguish between URL names
