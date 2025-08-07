@@ -63,3 +63,14 @@ class ContentGenerationForm(forms.Form):
         label="Generate a matching image (costs 3 credits)",
         help_text="Create a unique AI-generated image based on your content title and niche."
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Define the common Tailwind CSS classes
+        text_input_classes = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        
+        # Add classes and placeholders to all fields except the checkbox
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({'class': text_input_classes})
+                field.widget.attrs.update({'placeholder': field.label})

@@ -3,56 +3,175 @@
 {% block title %}Sign Up - {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="w-full max-w-lg bg-white rounded-lg shadow-md p-8 my-12">
+<style>
+    /* Custom styles for the interest tags */
+    .interest-tag-label {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+    }
+    .interest-tag-label:hover {
+        border-color: #6366f1;
+    }
+    .interest-tag-input:checked + .interest-tag-label {
+        background-color: #6366f1;
+        color: white;
+        border-color: #6366f1;
+    }
+    .interest-tag-input {
+        display: none;
+    }
+</style>
+
+<div class="w-full max-w-2xl bg-white rounded-lg shadow-md p-8 my-12">
     <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-gray-800">Create Your Account</h1>
-        <p class="text-gray-500 mt-2">Join to start generating content.</p>
+        <h1 id="step-title" class="text-2xl font-bold text-gray-800">Let's Get Started</h1>
+        <p id="step-subtitle" class="text-gray-500 mt-2">Create your account to continue.</p>
     </div>
 
-    <form method="post" novalidate class="space-y-4">
+    <!-- Progress Bar -->
+    <div class="mb-8">
+        <div class="flex items-center">
+            <div class="step-indicator flex-1 text-center font-semibold text-white bg-indigo-600 border-indigo-600 rounded-full">1</div>
+            <div class="flex-1 h-1 bg-gray-200 transition-colors duration-500" id="progress-bar-1"></div>
+            <div class="step-indicator flex-1 text-center text-gray-500 bg-gray-200 border-gray-200 rounded-full">2</div>
+            <div class="flex-1 h-1 bg-gray-200 transition-colors duration-500" id="progress-bar-2"></div>
+            <div class="step-indicator flex-1 text-center text-gray-500 bg-gray-200 border-gray-200 rounded-full">3</div>
+        </div>
+    </div>
+
+    <form id="signup-form" method="post" novalidate class="space-y-4">
         {% csrf_token %}
-
-        <!-- Loop through all form fields for consistent rendering -->
-        {% for field in form %}
-            <div>
-                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                    {{ field.label }}
-                </label>
-                
-                <!-- SIMPLIFIED: Just render the field. The classes are now in forms.py -->
-                {{ field }}
-                
-                {% if field.help_text %}
-                    <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
-                {% endif %}
-                {% for error in field.errors %}
-                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
-                {% endfor %}
+        
+        <!-- Step 1: Core Account Info -->
+        <div id="step-1" class="form-step">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>{{ form.first_name.label_tag }} {{ form.first_name }}</div>
+                <div>{{ form.last_name.label_tag }} {{ form.last_name }}</div>
+                <div class="md:col-span-2">{{ form.username.label_tag }} {{ form.username }}</div>
+                <div class="md:col-span-2">{{ form.email.label_tag }} {{ form.email }}</div>
+                <div>{{ form.password.label_tag }} {{ form.password }}</div>
+                <div>{{ form.confirm_password.label_tag }} {{ form.confirm_password }}</div>
             </div>
-        {% endfor %}
+        </div>
 
-        <!-- Display non-field errors -->
-        {% if form.non_field_errors %}
-            {% for error in form.non_field_errors %}
-                <p class="text-sm text-red-600 mb-4">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
+        <!-- Step 2: Profile Details -->
+        <div id="step-2" class="form-step hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>{{ form.date_of_birth.label_tag }} {{ form.date_of_birth }}</div>
+                <div>{{ form.country.label_tag }} {{ form.country }}</div>
+                <div class="md:col-span-2">{{ form.profession.label_tag }} {{ form.profession }}</div>
+                <div>{{ form.gender.label_tag }} {{ form.gender }}</div>
+            </div>
+        </div>
 
-        <div class="pt-4">
-            <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition">
-                Create Account
-            </button>
+        <!-- Step 3: Final Touches -->
+        <div id="step-3" class="form-step hidden">
+            <div class="space-y-4">
+                <div>{{ form.how_did_you_hear_about_us.label_tag }} {{ form.how_did_you_hear_about_us }}</div>
+                
+                <!-- Custom rendering for Interest Tags -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.interests.label }}</label>
+                    <div class="flex flex-wrap">
+                        {% for choice in form.interests %}
+                            {{ choice.tag }}
+                            <label for="{{ choice.id_for_label }}" class="interest-tag-label">{{ choice.choice_label }}</label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div>{{ form.referral_code.label_tag }} {{ form.referral_code }}</div>
+            </div>
+        </div>
+
+        <!-- Display form errors -->
+        <div id="form-errors" class="text-sm text-red-600">
+            {% if form.non_field_errors %}{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}{% endif %}
+            {% for field in form %}{% for error in field.errors %}<p class="field-error hidden" data-field="{{ field.name }}">{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="pt-6 flex justify-between items-center">
+            <button type="button" id="prev-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-md hover:bg-gray-300 transition hidden">Previous</button>
+            <button type="button" id="next-btn" class="ml-auto bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition">Next</button>
         </div>
     </form>
 
     <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">
-            Already have an account?
-            <a href="{% url 'authentication:login' %}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                Log In
-            </a>
-        </p>
+        <p class="text-sm text-gray-600">Already have an account? <a href="{% url 'authentication:login' %}" class="font-medium text-indigo-600 hover:text-indigo-500">Log In</a></p>
     </div>
 </div>
 
-{% comment %} REMOVED the broken filter block from here {% endcomment %}
+<script>
+    // The JavaScript for stepping remains the same.
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('signup-form');
+        const steps = Array.from(document.querySelectorAll('.form-step'));
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const stepIndicators = Array.from(document.querySelectorAll('.step-indicator'));
+        const progressBars = [document.getElementById('progress-bar-1'), document.getElementById('progress-bar-2')];
+        const title = document.getElementById('step-title');
+        const subtitle = document.getElementById('step-subtitle');
+
+        let currentStep = 0;
+
+        const stepTitles = ["Let's Get Started", "Tell Us About Yourself", "Just a Few More Details"];
+        const stepSubtitles = ["Create your core account to continue.", "This helps us personalize your experience.", "We're almost done!"];
+
+        function showStep(stepIndex) {
+            steps.forEach((step, index) => {
+                step.classList.toggle('hidden', index !== stepIndex);
+            });
+            updateProgress(stepIndex);
+            title.textContent = stepTitles[stepIndex];
+            subtitle.textContent = stepSubtitles[stepIndex];
+        }
+
+        function updateProgress(stepIndex) {
+            stepIndicators.forEach((indicator, index) => {
+                indicator.classList.toggle('bg-indigo-600', index <= stepIndex);
+                indicator.classList.toggle('text-white', index <= stepIndex);
+                indicator.classList.toggle('bg-gray-200', index > stepIndex);
+                indicator.classList.toggle('text-gray-500', index > stepIndex);
+            });
+            progressBars.forEach((bar, index) => {
+                 bar.classList.toggle('bg-indigo-600', index < stepIndex);
+            });
+
+            prevBtn.classList.toggle('hidden', stepIndex === 0);
+            nextBtn.textContent = stepIndex === steps.length - 1 ? 'Create Account' : 'Next';
+        }
+
+        nextBtn.addEventListener('click', function () {
+            if (currentStep === steps.length - 1) {
+                form.submit();
+            } else {
+                currentStep++;
+                showStep(currentStep);
+            }
+        });
+
+        prevBtn.addEventListener('click', function () {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        });
+
+        // This is new: We need to modify the 'tag' property for the interest checkboxes
+        const interestInputs = document.querySelectorAll('input[name="interests"]');
+        interestInputs.forEach(input => {
+            input.classList.add('interest-tag-input');
+        });
+
+        showStep(currentStep);
+    });
+</script>
+{% endblock %}
