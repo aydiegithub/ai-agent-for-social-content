@@ -25,6 +25,14 @@ class ContentGenerationForm(forms.Form):
         help_text="The main headline or title for your content.",
         widget=forms.TextInput(attrs={'placeholder': 'e.g., Technology, Marketing, Health, Space'})
     )
+    
+    niche = forms.CharField(
+        max_length=100,
+        required=True,
+        label="Niche / Industry",
+        help_text="The target industry for this content.",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., Technology, Marketing, Health'})
+    )
 
     context = forms.CharField(
         required=False,

@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from .models import User
 
 class CustomUserCreationForm(forms.ModelForm):
@@ -33,3 +34,28 @@ class CustomUserCreationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+# --- ADD THE MISSING FORMS BELOW ---
+
+class CustomLoginForm(AuthenticationForm):
+    """A standard login form with Tailwind CSS classes."""
+    username = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500',
+        'placeholder': 'Username'
+    }))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500',
+        'placeholder': 'Password'
+    }))
+
+class OTPVerificationForm(forms.Form):
+    """A form for the 6-digit OTP code."""
+    otp = forms.CharField(
+        max_length=6,
+        min_length=6,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 text-center tracking-[1em] border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500',
+            'placeholder': '------'
+        })
+    )
