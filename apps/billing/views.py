@@ -1,4 +1,7 @@
+import os
 import json
+import hmac
+import hashlib
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -12,155 +15,132 @@ from .forms import CreditPurchaseForm
 from .models import Transaction, Credits
 
 # --- Pricing Configuration ---
-# In a real application, this would likely be stored in the database
-# or a more formal configuration file.
 PRICING_PLANS = {
     'usd': [
         {'id': 'starter_usd', 'name': 'Starter', 'price': 2.99, 'credits': 50, 'currency': 'USD'},
         {'id': 'creator_usd', 'name': 'Creator', 'price': 9.99, 'credits': 200, 'currency': 'USD'},
-        {'id': 'business_usd', 'name': 'Business', 'price': 24.99, 'credits': 600, 'currency': 'USD'},
-        {'id': 'pro_usd', 'name': 'Pro', 'price': 49.99, 'credits': 1500, 'currency': 'USD'},
     ],
     'inr': [
         {'id': 'starter_inr', 'name': 'Starter', 'price': 199, 'credits': 50, 'currency': 'INR'},
         {'id': 'creator_inr', 'name': 'Creator', 'price': 699, 'credits': 200, 'currency': 'INR'},
-        {'id': 'business_inr', 'name': 'Business', 'price': 1899, 'credits': 600, 'currency': 'INR'},
-        {'id': 'pro_inr', 'name': 'Pro', 'price': 3999, 'credits': 1500, 'currency': 'INR'},
     ]
 }
 
 def get_country_from_request(request):
-    """ 
-    Simulates GeoIP lookup to determine the user's country
-    In a production environment, use a service like MaxMid GeoIP2 or 
-    check header from CDN like Cloudflare (CF-IPCountry)
-    """
-    # For demonstration, we'll default to 'IN' since you're in India
-    # In a real scenario, this would be dynamic.
-    # return request.META.get('HTTP_CF_IPCOUNTRY', 'US').upper()
-    return 'IN'
+    """Simulates GeoIP lookup."""
+    return 'IN' # Default to India for your case
 
 class PricingView(LoginRequiredMixin, View):
-    """ 
-    Display the pricing plans and handles the initiation of a purchase.
-    """
     template_name = 'billing/pricing.html'
     form_class = CreditPurchaseForm
     
     def get(self, request, *args, **kwargs):
         country_code = get_country_from_request(request)
         currency = 'inr' if country_code == 'IN' else 'usd'
-        plans = PRICING_PLANS[currency]
-        
-        context = {
-            'plans': plans,
-            'form': self.form_class()
-        }
+        context = {'plans': PRICING_PLANS[currency], 'form': self.form_class()}
         return render(request, self.template_name, context)
     
     def post(self, request, *args, **kwargs):
-        """ 
-        This view is called when a user clicks a 'Buy Now' button.
-        It creates a pending transcation and redirects to the payment gateway.
-        """
         form = self.form_class(request.POST)
-        if form.is_valid():
-            plan_id = form.cleaned_data['plan_id']
-            
-            # Find the seleccted plan from our configuration
-            selected_plan = None
-            for plan in PRICING_PLANS['usd'] + PRICING_PLANS['inr']:
-                if plan['id'] == plan_id:
-                    selected_plan = plan
-                    break
-            
-            if not selected_plan:
-                messages.error(request, "Invalid plan selected.")
-                return redirect('billing:pricing')
-            
-            # Create a pending transaction record in the database
-            # D1 DATABASE NOTE: This will be an INSERT query.
-            transaction_record = Transaction.objects.create(
-                user=request.user,
-                gateway='RAZORPAY', # Or detrmine dynamically
-                amount=selected_plan['price'],
-                currency=selected_plan['currency'],
-                credits_purchased=selected_plan['credits'],
-                status='PENDING'
-            )
-            
-            # TODO: Implement payment gateway logic
-            # 1. Call the payment gateway's API (e.g., Razorpay) to create an order.
-            # 2. The gateway will return an order_id and details.
-            # 3. Update our transaction_record with the gateway_txn_id.
-            # 4. Redirect the user to the gateway's checkout page.
-            
-            messages.info(request, "Redirecting to payment gateway...")
-            print(f"SIMULATION: User '{request.user.username}' initiated purchase for plan '{plan_id}'.")
-            print(f"SIMULATION: Created pending transaction {transaction_record.id}")
-            print(f"SIMULATION: World now redirect to Razorpay/Stripe checkout.")
-            
-            # For now, we'll just redirect back to the pricing page.
-            # In a real app, this would be the gateway's URL.
+        if not form.is_valid():
+            messages.error(request, "Invalid plan selected.")
+            return redirect('billing:pricing')
+
+        plan_id = form.cleaned_data['plan_id']
+        selected_plan = next((p for p in PRICING_PLANS['usd'] + PRICING_PLANS['inr'] if p['id'] == plan_id), None)
+        
+        if not selected_plan:
+            messages.error(request, "Invalid plan selected.")
             return redirect('billing:pricing')
         
-        # If form is invalid, re-render the pricing page
-        country_code = get_country_from_request(request)
-        currency = 'inr' if country_code == 'IN' else 'usd'
-        context = {
-            'plans': PRICING_PLANS[currency],
-            'form': form
-        }
-        return render(request, self.template_name, context)
-    
-    
+        # TODO: Integrate with a real payment gateway API to create an order.
+        # The gateway would return an order_id (gateway_txn_id).
+        # For now, we'll simulate this.
+        gateway_txn_id = f"sim_{hmac.new(os.urandom(16), digestmod=hashlib.sha256).hexdigest()}"
+        
+        Transaction.objects.create(
+            user=request.user,
+            gateway='RAZORPAY', # Or determine dynamically
+            gateway_txn_id=gateway_txn_id,
+            amount=selected_plan['price'],
+            currency=selected_plan['currency'],
+            credits_purchased=selected_plan['credits'],
+            status='PENDING'
+        )
+        
+        messages.info(request, "SIMULATION: Redirecting to payment gateway...")
+        # In a real app, you would redirect to the gateway's checkout URL.
+        # You can manually trigger the webhook for testing.
+        return redirect('billing:pricing')
+
 @method_decorator(csrf_exempt, name='dispatch')
 class PaymentWebhookView(View):
     """
-    Handles incoming webhooks from payment gateways to confirm transaction.
-    This view must be accessible by the payment gateway, so CSRF protection is disabled.
+    Handles incoming webhooks from payment gateways to confirm transactions.
+    This view MUST be protected by signature verification.
     """
     def post(self, request, gateway, *args, **kwargs):
-        # TODO: Implement webhook security and logic for each gateway
-        # 1. Verify the webhook signature to ensure it's authentic.
-        #    This is CRITICAL for security. Each gateway has its own method.
-        
-        # 2. Parse the webhook payload.
-        # payload = json.loads(request.body)
-        # event_type = payload.get('event')
-        # transaction_id = payload['data']['object']['id'] # Example for Stripe     
-        print(f"--- Received webhook from {gateway.upper()} ---")
-        print(request.body)
-        print("-------------------------------------------------")   
-        
-        # --- SIMULATED LOGIC ---
-        # In a real app, you'd find the transaction by the gateway's ID.
-        # For this simulation, we'll just grab the latest pending one for the user.
+        # This secret key is provided by your payment gateway dashboard.
+        # It MUST be set in your environment variables.
+        webhook_secret = os.getenv(f"{gateway.upper()}_WEBHOOK_SECRET")
+        if not webhook_secret:
+            print(f"ERROR: Webhook secret for {gateway.upper()} is not configured.")
+            return HttpResponse(status=500)
+
+        # --- Signature Verification (Example for Razorpay) ---
         try:
-            # D1 DATABASE NOTE: This block should be atomic.
-            with transaction.atomic():
-                # Find the pending transaction
-                # In a real app: transaction_to_update = Transaction.objects.get(gateway_txn_id=transaction_id)
-                transaction_to_update = Transaction.objects.filter(status='PENDING').latest('created_at')
-                
-                # Update its status to 'COMPLETED'
-                transaction_to_update.status = 'COMPLETED'
-                transaction_to_update.save()
-                
-                # Add the purchased credits to the user's account
-                user_credits = Credits.objects.get(user=transaction_to_update.user)
-                user_credits.balance += transaction_to_update.credits_purchased
-                user_credits.save()
-                
-            print(f"SUCCESS: Update transaction {transaction_to_update} to COMPLETE.")
-            print(f"SUCCESS: Added {transaction_to_update.credits_purchased} credits to {transaction_to_update.user}")
+            # Get the signature from the request headers
+            signature = request.headers.get('X-Razorpay-Signature')
+            if not signature:
+                return HttpResponseBadRequest("Signature missing.")
+            
+            # Verify the signature
+            generated_signature = hmac.new(webhook_secret.encode(), request.body, hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(generated_signature, signature):
+                return HttpResponseBadRequest("Invalid signature.")
+        except Exception as e:
+            print(f"ERROR: Signature verification failed: {e}")
+            return HttpResponseBadRequest("Invalid request.")
+        # --- End Verification ---
         
+        try:
+            payload = json.loads(request.body)
+            event_type = payload.get('event')
+
+            # We only care about successful payment events
+            if event_type == 'payment.captured' or event_type == 'order.paid':
+                # Get the transaction ID from the payload
+                payment_entity = payload.get('payload', {}).get('payment', {}).get('entity', {})
+                gateway_txn_id = payment_entity.get('order_id') or payment_entity.get('id')
+
+                if not gateway_txn_id:
+                    return HttpResponseBadRequest("Transaction ID missing in payload.")
+
+                with transaction.atomic():
+                    # Find the corresponding transaction in our database
+                    txn_to_update = Transaction.objects.select_for_update().get(
+                        gateway_txn_id=gateway_txn_id, status='PENDING'
+                    )
+                    
+                    # Update its status to 'COMPLETED'
+                    txn_to_update.status = 'COMPLETED'
+                    txn_to_update.save()
+                    
+                    # Add the purchased credits to the user's account
+                    user_credits, _ = Credits.objects.get_or_create(user=txn_to_update.user)
+                    user_credits.balance += txn_to_update.credits_purchased
+                    user_credits.save()
+                    
+                print(f"SUCCESS: Processed webhook for Txn ID: {gateway_txn_id}")
+            else:
+                print(f"INFO: Received unhandled event type: {event_type}")
+
         except Transaction.DoesNotExist:
-            print("ERROR: Could not find a pending transaction to update.")
-            return HttpResponseBadRequest("Transaction not found.")
+            print(f"ERROR: Received webhook for an unknown or already processed transaction.")
+            return HttpResponseBadRequest("Transaction not found or already processed.")
         except Exception as e:
             print(f"ERROR: An error occurred processing webhook: {e}")
             return HttpResponse(status=500)
         
-                # Return a 200 OK response to the gateway to acknowledge receipt.
+        # Return a 200 OK to the gateway to acknowledge receipt.
         return HttpResponse(status=200)
