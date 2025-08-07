@@ -9,6 +9,7 @@ load_dotenv()
 # --- Core Settings ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
+SOCIAL_ENCRYPTION_KEY = os.getenv('SOCIAL_ENCRYPTION_KEY')
 
 # DEBUG should always be False in production for security and performance.
 # We default to 'False' and only set it to True if the env var is explicitly 'True'.

@@ -6,8 +6,13 @@ from django.conf import settings
 # We'll load it from the environment variables, just like the Django SECRET_KEY.
 # Make sure to generate a new key for your production environment.
 # You can generate a key using: Fernet.generate_key().decode()
-ENCRYPTION_KEY = getattr(settings, 'SOCIAL_ENCRYPTION_KEY', settings.SECRET_KEY)
-f = Fernet(ENCRYPTION_KEY.encode())
+try:
+    ENCRYPTION_KEY = settings.SOCIAL_ENCRYPTION_KEY
+    if not ENCRYPTION_KEY:
+        raise ValueError("SOCIAL_ENCRYPTION_KEY is not set in settings.")
+    f = Fernet(ENCRYPTION_KEY.encode())
+except AttributeError:
+    raise AttributeError("Please define SOCIAL_ENCRYPTION_KEY in your project settings.")
 
 def encrypt_token(token: str) -> str:
     """Encrypts a token using Fernet symmetric encryption."""
